@@ -48,6 +48,52 @@ class PrintPreview:
         self.p_subtitle_size = subsize
         self.p_content_siae = csize
 
+    def create_PSMDocxAllInOne(self):
+        docxname = '小学生口算题集合'
+        p_docx = Document()
+        p_docx.styles['Normal'].font.name = u'Times'
+        k = 1
+        for l, t in zip(self.p_list, self.p_title):
+            self.addNewPage(l, '{}  卷{}'.format(t, str(k)), p_docx)
+            k = k + 1
+        p_docx.save('{}.docx'.format(docxname))
+
+    def addNewPage(self, l, title, docx):
+        # New Page
+        p = docx.add_paragraph()
+        p.paragraph_format.alignment = 1 #WD_ALIGN_PARAGRAPH.CENTER
+        run = p.add_run(title)
+        run.font.color.rgb = RGBColor(54, 0, 0)
+        run.font.size = Pt(self.p_title_size)
+
+        sp = docx.add_paragraph()
+        sp.paragraph_format.alignment = 1
+        srun = sp.add_run(self.p_subtitle)
+        srun.font.color.rgb = RGBColor(54, 0, 0)
+        srun.font.size = Pt(self.p_subtitle_size)
+        # Row count: rs
+        if (len(l) % self.p_column):
+            rs = len(l) // self.p_column + 1
+        else:
+            rs = len(l) // self.p_column
+        k = 0  # 计数器
+        table = docx.add_table(rows=rs, cols=self.p_column)
+        for i in range(rs):
+            if i >= 0:
+                table.rows[i].height = Cm(0.8)
+                table.rows[i].height_rule = 2 # WD_ROW_HEIGHT_RULE.EXACTLY Issue #652
+                row_cells = table.rows[i].cells
+                for j in range(self.p_column):
+                    if (k > len(l) - 1):
+                        break
+                    else:
+                        row_cells[j].text = l[k]
+                        k = k + 1
+        table.style.paragraph_format.alignment = 1 # WD_ALIGN_PARAGRAPH.CENTER
+        table.style.font.color.rgb = RGBColor(54, 0, 0)  # 颜色设置，这里是用RGB颜色
+        table.style.font.size = Pt(self.p_content_siae)  # 字体大小设置，和word里面的字号相对应
+        docx.add_page_break()
+
     def create_psmdocx(self, l, title, docxname):
         '''
         :param l list 一组题库
@@ -101,11 +147,12 @@ class PrintPreview:
         p_docx.save('{}.docx'.format(docxname))  # 输出docx
 
     def produce(self):
-        k = 1
-        for l, t in zip(self.p_list, self.p_title):
-            self.create_psmdocx(l, t, t + str(k))
-            k = k + 1
-
+        # TODO: Add UX contorl for two document models.
+        # k = 1
+        # for l, t in zip(self.p_list, self.p_title):
+        #     self.create_psmdocx(l, t, t + str(k))
+        #     k = k + 1
+        self.create_PSMDocxAllInOne()
 
 
 if __name__ == '__main__':
